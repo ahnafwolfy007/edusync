@@ -67,9 +67,9 @@ const AuthPage = () => {
           
           setSuccess(data.message);
           
-          // Redirect to home page after successful login
+          // Redirect to dashboard after successful login
           setTimeout(() => {
-            navigate('/');
+            navigate('/dashboard');
           }, 1500);
         } else {
           // For signup: Show success message and switch to login

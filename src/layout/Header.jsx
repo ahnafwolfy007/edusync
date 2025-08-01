@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaBell, FaUserCircle, FaCog, FaEdit, FaSignOutAlt } from 'react-icons/fa';
+import { FaBell, FaUserCircle, FaCog, FaEdit, FaSignOutAlt, FaUser, FaChartBar, FaHeart, FaShoppingBag } from 'react-icons/fa';
 
 const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -18,7 +18,18 @@ const Header = () => {
     };
     
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    
+    // Listen for auth state changes triggered by other components
+    const handleAuthChange = () => {
+      checkAuthStatus();
+    };
+    
+    window.addEventListener('authStateChanged', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
   }, []);
 
   const checkAuthStatus = async () => {
@@ -79,10 +90,25 @@ const Header = () => {
       setIsAuthenticated(false);
       setIsDropdownOpen(false);
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('authStateChanged'));
+      
       // Redirect to home page
       navigate('/');
     }
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.user-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
 
   return (
     <div className="text-gray-800 font-sans">
@@ -129,51 +155,150 @@ const Header = () => {
               </button>
 
               {/* User Profile Dropdown - Only shown when authenticated */}
-              <div className="relative">
+              <div className="relative user-dropdown">
                 <button 
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-[#5A3FF4] transition-colors"
+                  className="flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-gray-200 hover:shadow-lg hover:border-indigo-300 transition-all duration-300 group"
                   title={user?.name || 'User Profile'}
                 >
-                  <FaUserCircle className="text-2xl" />
-                  <span className="hidden md:inline-block text-sm font-medium">
-                    {user?.name || 'User'}
-                  </span>
+                  <div className="w-8 h-8 bg-gradient-to-r from-[#5A3FF4] to-[#6B4EFF] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">
+                      {user?.name || 'User'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {user?.email || 'user@example.com'}
+                    </div>
+                  </div>
+                  <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
 
-                {/* Dropdown Menu */}
+                {/* Enhanced Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl py-2 z-50 border border-gray-100 backdrop-blur-sm">
+                    {/* User Info Header */}
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-[#5A3FF4] to-[#6B4EFF] rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">{user?.name || 'User'}</p>
+                          <p className="text-sm text-gray-600">{user?.email || 'user@example.com'}</p>
+                        </div>
+                      </div>
                     </div>
                     
-                    <Link
-                      to="/edit-profile"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <FaEdit className="mr-2" />
-                      Edit Profile
-                    </Link>
-                    
-                    <Link
-                      to="/settings"
-                      className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <FaCog className="mr-2" />
-                      Settings
-                    </Link>
-                    
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      <FaSignOutAlt className="mr-2" />
-                      Logout
-                    </button>
+                    {/* Quick Stats */}
+                    <div className="px-6 py-3 border-b border-gray-100">
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="p-2 bg-purple-50 rounded-lg">
+                          <div className="text-lg font-bold text-purple-600">12</div>
+                          <div className="text-xs text-gray-600">Saved</div>
+                        </div>
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                          <div className="text-lg font-bold text-blue-600">5</div>
+                          <div className="text-xs text-gray-600">Listed</div>
+                        </div>
+                        <div className="p-2 bg-green-50 rounded-lg">
+                          <div className="text-lg font-bold text-green-600">8</div>
+                          <div className="text-xs text-gray-600">Sold</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center px-6 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors group"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-indigo-200 transition-colors">
+                          <FaChartBar className="text-indigo-600" size={14} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Dashboard</div>
+                          <div className="text-xs text-gray-500">View your activity</div>
+                        </div>
+                      </Link>
+                      
+                      <Link
+                        to="/profile"
+                        className="flex items-center px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-green-200 transition-colors">
+                          <FaUser className="text-green-600" size={14} />
+                        </div>
+                        <div>
+                          <div className="font-medium">My Profile</div>
+                          <div className="text-xs text-gray-500">Edit your information</div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/my-listings"
+                        className="flex items-center px-6 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors group"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-orange-200 transition-colors">
+                          <FaShoppingBag className="text-orange-600" size={14} />
+                        </div>
+                        <div>
+                          <div className="font-medium">My Listings</div>
+                          <div className="text-xs text-gray-500">Manage your items</div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/saved-items"
+                        className="flex items-center px-6 py-3 text-gray-700 hover:bg-pink-50 hover:text-pink-700 transition-colors group"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-pink-200 transition-colors">
+                          <FaHeart className="text-pink-600" size={14} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Saved Items</div>
+                          <div className="text-xs text-gray-500">Your favorites</div>
+                        </div>
+                      </Link>
+                      
+                      <Link
+                        to="/settings"
+                        className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-colors">
+                          <FaCog className="text-gray-600" size={14} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Settings</div>
+                          <div className="text-xs text-gray-500">Preferences & privacy</div>
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Logout Button */}
+                    <div className="border-t border-gray-100 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-6 py-3 text-red-600 hover:bg-red-50 transition-colors group"
+                      >
+                        <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-red-200 transition-colors">
+                          <FaSignOutAlt className="text-red-600" size={14} />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-medium">Sign Out</div>
+                          <div className="text-xs text-red-400">Log out of your account</div>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
