@@ -52,10 +52,10 @@ const authenticateToken = (req, res, next) => {
 // Sign Up Route
 app.post('/api/auth/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
+    const { name, email, password, institution, phone, location } = req.body;
+    console.log(req.body);
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !institution || !location || !phone) {
       return res.status(400).json({ 
         message: 'All fields are required' 
       });
@@ -83,10 +83,15 @@ app.post('/api/auth/signup', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Insert new user
+    console.log(req.body); // Debugging line to check incoming data
+
+    // Insert new user - CORRECTED QUERY
     const newUser = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, created_at',
-      [name, email, hashedPassword]
+      `INSERT INTO users 
+       (name, email, password, institution, phone, location) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
+       RETURNING id, name, email, created_at, institution, phone, location`,
+      [name, email, hashedPassword, institution, phone, location]
     );
 
     // Generate JWT token
@@ -102,18 +107,14 @@ app.post('/api/auth/signup', async (req, res) => {
     res.status(201).json({
       message: 'User created successfully',
       token,
-      user: {
-        id: newUser.rows[0].id,
-        name: newUser.rows[0].name,
-        email: newUser.rows[0].email,
-        createdAt: newUser.rows[0].created_at
-      }
+      user: newUser.rows[0]
     });
 
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ 
-      message: 'Internal server error' 
+      message: 'Internal server error',
+      error: error.message  // Include the error message for debugging
     });
   }
 });
@@ -168,7 +169,10 @@ app.post('/api/auth/login', async (req, res) => {
         id: user.rows[0].id,
         name: user.rows[0].name,
         email: user.rows[0].email,
-        createdAt: user.rows[0].created_at
+        createdAt: user.rows[0].created_at,
+        institution: user.rows[0].institution,
+        location: user.rows[0].location,
+        phone: user.rows[0].phone,
       }
     });
 
@@ -184,7 +188,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/profile', authenticateToken, async (req, res) => {
   try {
     const user = await pool.query(
-      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, created_at, institution, location, phone FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -227,6 +231,7 @@ app.get('/api/test-db', async (req, res) => {
     res.json({ 
       message: 'Database connected successfully', 
       timestamp: result.rows[0].now 
+      
     });
   } catch (error) {
     console.error('Database connection error:', error);
