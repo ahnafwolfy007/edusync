@@ -5,10 +5,14 @@ import { Link, useNavigate } from 'react-router-dom';
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: ''
-  });
+  email: '',
+  password: '',
+  name: '',
+  institution: '',
+  role: 'student', // Default role
+  location: '',
+  phone: '',
+});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -79,7 +83,10 @@ const AuthPage = () => {
           setFormData({
             email: '',
             password: '',
-            name: ''
+            name: '',
+            institution: '',
+            location: '',
+            phone: ''
           });
           
           // Switch to login form after a short delay
@@ -183,23 +190,105 @@ const AuthPage = () => {
 
             <form onSubmit={handleSubmit}>
               {!isLogin && (
-                <div className="mb-3 sm:mb-4">
-                  <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="name">
-                    Full Name
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
-                    placeholder="John Doe"
-                    required={!isLogin}
-                    disabled={loading}
-                  />
-                </div>
-              )}
+  <>
+    <div className="mb-3 sm:mb-4">
+      <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="name">
+        Full Name
+      </label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        value={formData.name}
+        onChange={handleChange}
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
+        placeholder="John Doe"
+        required={!isLogin}
+        disabled={loading}
+      />
+    </div>
+
+    <div className="mb-3 sm:mb-4">
+      <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="institution">
+        Institution
+      </label>
+      <input
+        id="institution"
+        name="institution"
+        type="text"
+        value={formData.institution}
+        onChange={handleChange}
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
+        placeholder="University/College"
+        required={!isLogin}
+        disabled={loading}
+      />
+    </div>
+    <div className="mb-3 sm:mb-4">
+      {/* <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+        Role
+      </label> */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setFormData({...formData, role: 'student'})}
+          className={`flex-1 py-2 px-4 rounded-lg border focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors text-sm sm:text-base ${
+            formData.role === 'student' 
+              ? 'bg-indigo-600 text-white border-indigo-600' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Student
+        </button>
+        <button
+          type="button"
+          onClick={() => setFormData({...formData, role: 'faculty'})}
+          className={`flex-1 py-2 px-4 rounded-lg border focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors text-sm sm:text-base ${
+            formData.role === 'faculty' 
+              ? 'bg-indigo-600 text-white border-indigo-600' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Faculty
+        </button>
+      </div>
+    </div>
+
+    <div className="mb-3 sm:mb-4">
+      <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="location">
+        Location
+      </label>
+      <input
+        id="location"
+        name="location"
+        type="text"
+        value={formData.location}
+        onChange={handleChange}
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
+        placeholder="City, Country"
+        required={!isLogin}
+        disabled={loading}
+      />
+    </div>
+
+    <div className="mb-3 sm:mb-4">
+      <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="phone">
+        Phone Number
+      </label>
+      <input
+        id="phone"
+        name="phone"
+        type="tel"
+        value={formData.phone}
+        onChange={handleChange}
+        className="w-full px-3 py-2 sm:px-4 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
+        placeholder="+1234567890"
+        required={!isLogin}
+        disabled={loading}
+      />
+    </div>
+  </>
+)}
 
               <div className="mb-3 sm:mb-4">
                 <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="email">
@@ -217,6 +306,8 @@ const AuthPage = () => {
                   disabled={loading}
                 />
               </div>
+
+              
 
               <div className="mb-4 sm:mb-6">
                 <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2" htmlFor="password">
