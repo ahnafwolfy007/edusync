@@ -9,6 +9,7 @@ const AuthPage = () => {
   password: '',
   name: '',
   institution: '',
+  role: 'student', // Default role
   location: '',
   phone: '',
 });
@@ -222,6 +223,35 @@ const AuthPage = () => {
         required={!isLogin}
         disabled={loading}
       />
+    </div>
+    <div className="mb-3 sm:mb-4">
+      {/* <label className="block text-gray-700 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
+        Role
+      </label> */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setFormData({...formData, role: 'student'})}
+          className={`flex-1 py-2 px-4 rounded-lg border focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors text-sm sm:text-base ${
+            formData.role === 'student' 
+              ? 'bg-indigo-600 text-white border-indigo-600' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Student
+        </button>
+        <button
+          type="button"
+          onClick={() => setFormData({...formData, role: 'faculty'})}
+          className={`flex-1 py-2 px-4 rounded-lg border focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors text-sm sm:text-base ${
+            formData.role === 'faculty' 
+              ? 'bg-indigo-600 text-white border-indigo-600' 
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          Faculty
+        </button>
+      </div>
     </div>
 
     <div className="mb-3 sm:mb-4">
